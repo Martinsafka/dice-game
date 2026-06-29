@@ -24,6 +24,13 @@ Example shape:
 
 <!-- Newest entries below. Add yours on top of the list. -->
 
+### 2026-06-29 — M1 physical tray + dynamic die
+
+**What:** `src/scene/Tray.tsx` (fixed floor + 4 wall colliders) and `src/scene/Die.tsx` (a dynamic `colliders="cuboid"` box with 6 distinct face colours). `DiceGame` now wraps the scene in `<Physics>`, drops the die, and re-throws it on click. Removed the M0 `Ground` / `StaticBox` placeholders.
+**Why:** M1 — get a die falling, bouncing, and settling inside a tray; the first real Rapier integration.
+**How:** Verified the @react-three/rapier 2.2 API against the installed types before coding (`RigidBody` `type`/`colliders`/`linearVelocity`/`angularVelocity`; `CuboidCollider` `args` + `position`; `Physics` `gravity`/`debug`; `RapierRigidBody` methods). Floor = a visible plane **plus** an explicit thin `CuboidCollider` slab (a bare plane gives a degenerate auto-collider) — a deliberate tweak to the physics.md snippet; the 4 walls are collider-only cuboids grouped in one fixed body. Die faces use 6 `attach="material-N"` materials in BoxGeometry order (+X,−X,+Y,−Y,+Z,−Z) so M2 can swap colours → number textures in place. The die ref lives in `DiceGame` (the architecture's "refs owned at the top"); a temporary `throwDie(rb)` on canvas `onPointerDown` (setTranslation/setLinvel/setAngvel) stresses the walls — superseded by `rollDice` (M3) + real input (M4). `SHOW_COLLIDERS` → `<Physics debug>` shows collider wireframes for tuning.
+**Follow-ups:** Bundle jumped to ~1.15 MB gzip — rapier's `rapier3d-compat` inlines its WASM as base64 (expected; code-splitting deferred, YAGNI). Tuning constants are eyeballed at one setting; revisit with two dice + real throws (M3). Physics **behaviour** needs a browser to confirm (`pnpm dev`); the toolchain gates only prove it compiles + integrates. Settle detection + `readDieValue` are M2.
+
 ### 2026-06-29 — M0 scaffold (Vite + R3F + Rapier + Zustand)
 
 **What:** Scaffolded the app: `package.json`, `vite.config.ts`, single `tsconfig.json`, `eslint.config.js`, prettier/gitignore, `index.html`, and `src/{main.tsx, DiceGame.tsx, index.css, vite-env.d.ts, scene/{Lights, Ground, StaticBox}.tsx}`. A top-down orthographic scene renders a static red box on a ground plane with shadows.

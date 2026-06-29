@@ -34,9 +34,10 @@ Scaffold → physical tray → **settle + read** (the core) → two dice + UI �
 
 ### M1 — Physical tray
 
-- [ ] Floor + 4 fixed walls (`Tray`, see `physics.md`).
-- [ ] Drop one **dynamic** die in; watch it fall, bounce, and come to rest.
-- [ ] Tune `restitution`, `friction`, gravity, wall height (no pop-outs on a hard drop).
+- [x] Floor + 4 fixed walls (`Tray`, see `physics.md`).
+- [x] Drop one **dynamic** die in; watch it fall, bounce, and come to rest.
+- [x] Tune `restitution`, `friction`, gravity, wall height (no pop-outs on a hard drop). _(Exposed +
+      eyeballed at one setting; revisit with two dice + real throws in M3.)_
 
 ### M2 — Settle + read ⭐ the core
 
