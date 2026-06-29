@@ -58,8 +58,11 @@ Scaffold → physical tray → **settle + read** (the core) → two dice + UI �
 
 ### M4 — Desktop drag/throw
 
-- [ ] Pointer raycast onto the `y = dieHeight` plane → target point.
-- [ ] Velocity-based drag (`physics.md`); the throw falls out of residual velocity + a random spin.
+- [x] Pointer raycast onto the `y = dieHeight` plane → target point.
+- [x] Velocity-based drag (`physics.md`); the throw falls out of residual velocity + a random spin.
+      _(`src/input/DiceDragControls.tsx`. Reworked per user request into **drag-all**: pressing the tray
+      grabs every die toward the cursor, each dangling from a corner via `applyImpulseAtPoint`; release
+      fires `startRoll`. `ccd` + clamp limit tunnelling. Feel constants need browser tuning.)_
 - **Follow-up:** kinematic drag handoff for more control (synchronous kinematic→dynamic switch).
 
 ### M5 — Mobile gyro shake

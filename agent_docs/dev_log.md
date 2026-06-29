@@ -24,6 +24,20 @@ Example shape:
 
 <!-- Newest entries below. Add yours on top of the list. -->
 
+### 2026-06-29 — Drag-all: grab every die, dangle from a corner (M4 refinement)
+
+**What:** Reworked the drag from per-die grab into **drag-all**. Pressing the tray grabs ALL dice toward the cursor; each is pulled by a spring impulse applied at one corner (`applyImpulseAtPoint`) so it hangs and swings from that corner under gravity — full physics, they still collide. Dice shrink slightly while held (visual mesh scale only) to fake "lifted" under the ortho camera; extra linear/angular damping keeps the dangle gentle; release adds a spin + `startRoll`. `Die` lost `index`/`onGrab`, gained a `dragging` ref + a scale lerp; `DiceGame` swapped `dragIndex` → a `dragging` boolean ref and starts the drag on canvas pointer-down; CSS grab/grabbing cursor on `.game`.
+**Why:** User request — grab all dice at once, keep them physically simulated, dangle them at the cursor pulled by a corner, with a perspective-y shrink so they read as airborne.
+**How:** Ortho top-down ⇒ a vertical pick ray, so the cursor maps to one (x,z) column and all dice are pulled to (cursorX, DRAG_HEIGHT, cursorZ). The local corner (0.5,0.5,0.5) is rotated by the die's current quaternion to a world point; a damped, clamped spring impulse is applied THERE — the off-centre force makes torque = the dangle. The collider stays full size while only the mesh scales (so it's consistent again on release). Tunables are grouped at the top of `DiceDragControls` (PULL / DAMP / MAX_IMPULSE / DRAG_HEIGHT / CORNER), `DiceGame` (drag damping), and `Die` (DRAG_SCALE).
+**Follow-ups:** Feel constants are a first pass — **needs hands-on tuning in a browser** (spring strength, damping, lift height, scale amount). Fast yanks can still tunnel despite `ccd`. Kinematic handoff remains the deeper-control follow-up.
+
+### 2026-06-29 — M4 desktop drag-throw
+
+**What:** `src/input/DiceDragControls.tsx` — grab a die (its mesh `onPointerDown` sets `dragIndex`), drag it (raycast the cursor onto a y=1 plane, drive it there with `setLinvel`), release to throw (residual velocity + a random spin + `startRoll`). `Die` gained `index` / `onGrab` props + a grab cursor + `ccd`; `DiceGame` owns `dragIndex` and mounts the controller. Removed the click-anywhere-to-roll (it conflicted with grabbing); the Roll button still throws both dice.
+**Why:** M4 — let the player grab and throw a die with the mouse.
+**How:** Velocity-based (per physics.md): each frame the grabbed die's linvel is set toward the cursor's plane projection (clamped to MAX_DRAG_SPEED to limit tunnelling; `ccd` on the dice for the same reason), so a flick leaves real residual velocity = the throw, a gentle release just places it. Release fires `startRoll` so SettleWatcher re-reads both dice (a throw counts as a roll). Pure ref / imperative work — `dragIndex` + bodies are refs read only in the frame loop and the window `pointerup` handler (no React state). `useThree` selectors give camera / raycaster / pointer; the overlay stays `pointer-events: none` so grabs reach the dice.
+**Follow-ups:** Kinematic drag handoff (switch to KinematicPositionBased while dragging, hand back to dynamic on release — more control, no tunnelling) deferred per the roadmap. Fast yanks can still occasionally tunnel despite the clamp + ccd. Next: M5 — mobile gyro shake.
+
 ### 2026-06-29 — Number faces on the dice (verification aid; M6 pulled forward)
 
 **What:** `src/textures/number-materials.ts` (`getNumberMaterials` — six `CanvasTexture` materials, a digit on a light square) replaces the Die's six colour materials.

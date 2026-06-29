@@ -19,6 +19,11 @@ body {
   position: relative;
   width: 100%;
   height: 100%;
+  cursor: grab;
+}
+
+.game:active {
+  cursor: grabbing;
 }
 
 /* DOM HUD over the canvas. Click-through except interactive controls, so clicking the

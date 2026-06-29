@@ -7,7 +7,7 @@ type UIOverlayProps = {
 /**
  * DOM HUD over the canvas (not built from Three meshes). The reactive, low-frequency side:
  * it reads the Zustand store and re-renders once per roll. The overlay is click-through
- * (pointer-events: none) except the button, so clicking the tray still rolls.
+ * (pointer-events: none) except the button, so pointer events reach the dice (for dragging).
  */
 export function UIOverlay({ onRoll }: UIOverlayProps) {
   const phase = useGameStore((s) => s.phase)

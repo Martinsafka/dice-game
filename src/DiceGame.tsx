@@ -5,6 +5,7 @@ import { Lights } from './scene/Lights'
 import { Tray } from './scene/Tray'
 import { Die } from './scene/Die'
 import { SettleWatcher } from './scene/SettleWatcher'
+import { DiceDragControls } from './input/DiceDragControls'
 import { UIOverlay } from './ui/UIOverlay'
 import { rollDice } from './physics/roll'
 import { useGameStore } from './state/game-store'
@@ -17,20 +18,40 @@ const DIE_SPAWN: [number, number, number][] = [
   [1.2, 5, 0],
 ]
 
+// Extra damping while dragging so the dangling dice swing gently instead of thrashing.
+const DRAG_LINEAR_DAMPING = 1.5
+const DRAG_ANGULAR_DAMPING = 2
+
 /**
- * Root composition. M3: two dice, a Zustand store, and a DOM overlay. Click Roll (or the
- * tray) → startRoll + rollDice; SettleWatcher writes the result once the dice rest. The dice
- * register their bodies into one ref (read only outside render); DiceGame doesn't subscribe
- * to the store (actions via getState), so it never re-renders. See agent_docs/roadmap.md.
+ * Root composition. M4: two dice in a tray, a Zustand store, a DOM overlay, and a drag-all
+ * throw. The Roll button throws both dice; pressing the tray grabs ALL dice toward the cursor
+ * (they dangle from a corner — DiceDragControls) and releasing throws them. DiceGame doesn't
+ * subscribe to the store (actions via getState), so it never re-renders.
  */
 export function DiceGame() {
   const bodies = useRef<RapierRigidBody[]>([])
+  const dragging = useRef(false)
+
+  function ready() {
+    const dice = bodies.current
+    return dice.length >= DIE_SPAWN.length && dice.every((b) => b != null)
+  }
 
   function handleRoll() {
-    const dice = bodies.current
-    if (dice.length < DIE_SPAWN.length || dice.some((b) => b == null)) return // not mounted yet
+    if (!ready()) return
     useGameStore.getState().startRoll()
-    rollDice(dice)
+    rollDice(bodies.current)
+  }
+
+  // Press anywhere on the tray → grab ALL dice: they fly to the cursor and dangle from a corner
+  // (DiceDragControls drives them). Release (window pointerup, in the controller) throws them.
+  function startDrag() {
+    if (!ready()) return
+    dragging.current = true
+    for (const rb of bodies.current) {
+      rb.setLinearDamping(DRAG_LINEAR_DAMPING)
+      rb.setAngularDamping(DRAG_ANGULAR_DAMPING)
+    }
   }
 
   return (
@@ -45,7 +66,7 @@ export function DiceGame() {
         onCreated={({ camera }) => {
           camera.rotation.set(-Math.PI / 2, 0, 0)
         }}
-        onPointerDown={handleRoll}
+        onPointerDown={startDrag}
       >
         <color attach="background" args={['#0f172a']} />
         <Lights />
@@ -58,9 +79,11 @@ export function DiceGame() {
                 if (body) bodies.current[i] = body
               }}
               position={spawn}
+              dragging={dragging}
             />
           ))}
           <SettleWatcher bodies={bodies} count={DIE_SPAWN.length} />
+          <DiceDragControls bodies={bodies} dragging={dragging} />
         </Physics>
       </Canvas>
     </div>
