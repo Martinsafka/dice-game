@@ -14,3 +14,84 @@ body {
   background: #0f172a;
   overflow: hidden;
 }
+
+.game {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* DOM HUD over the canvas. Click-through except interactive controls, so clicking the
+   tray still rolls the dice. */
+.ui-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: #e2e8f0;
+  user-select: none;
+}
+
+.ui-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.ui-dice {
+  display: flex;
+  gap: 10px;
+}
+
+.ui-die {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #1e293b;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.ui-die--empty {
+  opacity: 0.35;
+}
+
+.ui-total {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.ui-rolls {
+  font-size: 13px;
+  opacity: 0.6;
+}
+
+.ui-roll {
+  pointer-events: auto;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 999px;
+  background: #6366f1;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ui-roll:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

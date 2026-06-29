@@ -24,6 +24,20 @@ Example shape:
 
 <!-- Newest entries below. Add yours on top of the list. -->
 
+### 2026-06-29 — Number faces on the dice (verification aid; M6 pulled forward)
+
+**What:** `src/textures/number-materials.ts` (`getNumberMaterials` — six `CanvasTexture` materials, a digit on a light square) replaces the Die's six colour materials.
+**Why:** Make the read trivially verifiable by eye — read the number on the top face and check it against the Total, instead of mapping colours (user request).
+**How:** Digits come from the `FACES` table (single source of truth), in BoxGeometry order (+X,−X,+Y,−Y,+Z,−Z), so the rendered up-face always matches `readDieValue`. Materials are a lazily-built module singleton shared by both dice (no per-die duplication). Procedural canvas, no asset pipeline — the M6 "number textures" item, pulled forward.
+**Follow-ups:** Per-face UV rotation not handled — a top digit may read rotated 90° / 180° (still legible; cosmetic, fits M6). "Nicer textures / decals + a subtler tray + toon / outline" remain M6.
+
+### 2026-06-29 — M3 two dice + Zustand store + DOM overlay (playable)
+
+**What:** `src/state/game-store.ts` (Zustand: phase/results/total/rolls + startRoll/setResult), `src/physics/roll.ts` (`rollDice`), `src/ui/UIOverlay.tsx` (DOM HUD: dice values, total, roll counter, Roll button) + overlay CSS in `index.css`. `DiceGame` mounts two dice, wires the store, and rolls on the button or a tray click. `SettleWatcher` now reads the store phase and writes `setResult` once on settle, with a cocked-die nudge. Removed the Die's fixed M1 spin.
+**Why:** M3 — make it playable: throw two dice, read both from physics, show the total; one store write per roll.
+**How:** The physics/state boundary holds — per-frame stays in refs/`useFrame`; the store is written exactly twice per roll (startRoll on throw, setResult on settle). `DiceGame` doesn't subscribe to the store (actions via `getState`), so it never re-renders → die props stay stable, physics undisturbed; only `UIOverlay` subscribes (re-renders once per roll). The phase gate gives one-report-per-roll for free (setResult → 'settled' closes the gate). Cocked dice self-resolve: nudge up + random torque, keep watching. **Ref-handling fix:** eslint-plugin-react-hooks 7's `react-hooks/refs` rule forbids passing an **array of refs** through render (`dice.map` / `dice={dice}`); switched to one `useRef<RapierRigidBody[]>` the dice register into via ref callbacks, read only in handlers / `useFrame`. Overlay is click-through (`pointer-events: none`) except the button, so clicking the tray rolls too.
+**Follow-ups:** Playable but **not yet visually verified** in a browser (toolchain gates only). `rollDice` lifts + repositions the dice each throw (a clean toss); the in-place residual-velocity throw is the M4 drag model. Faces are still colours (numbers are polish, M5/M6). Next: M4 — desktop drag/throw (pointer raycast → velocity drag).
+
 ### 2026-06-29 — M2 settle detection + read-from-physics ⭐ (the core)
 
 **What:** `src/physics/{faces.ts, read-die.ts, settle.ts}` (React-free: the face table in BoxGeometry order, `readDieValue` → `{ value, confidence }`, tuning constants) and `src/scene/SettleWatcher.tsx` (per-frame rest detection in `useFrame`). `DiceGame` mounts the watcher on the die and logs `[settle] value = total (confidence …)` on each rest.
