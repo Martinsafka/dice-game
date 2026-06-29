@@ -1,4 +1,4 @@
-import { CanvasTexture, MeshStandardMaterial, SRGBColorSpace } from 'three'
+import { CanvasTexture, MeshToonMaterial, SRGBColorSpace } from 'three'
 import { FACES } from '../physics/faces'
 
 /** Draw a single digit on a light square → a CanvasTexture (no asset pipeline). */
@@ -31,12 +31,13 @@ function makeDigitTexture(digit: number): CanvasTexture {
 }
 
 // Six face materials in BoxGeometry order (+X, −X, +Y, −Y, +Z, −Z), digits taken from the FACES
-// table so the rendered number always matches readDieValue. Built once and shared by every die.
-let shared: MeshStandardMaterial[] | null = null
+// table so the rendered number always matches readDieValue. Toon material for the cel-shaded look
+// (paired with drei <Outlines> on the die). Built once and shared by every die.
+let shared: MeshToonMaterial[] | null = null
 
-export function getNumberMaterials(): MeshStandardMaterial[] {
+export function getNumberMaterials(): MeshToonMaterial[] {
   if (!shared) {
-    shared = FACES.map((face) => new MeshStandardMaterial({ map: makeDigitTexture(face.value) }))
+    shared = FACES.map((face) => new MeshToonMaterial({ map: makeDigitTexture(face.value) }))
   }
   return shared
 }

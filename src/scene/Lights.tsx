@@ -1,11 +1,12 @@
-/** Ambient fill + a shadow-casting key light. Shared by the scene. */
+/** Ambient + hemisphere fill and a shadow-casting key light (basic PCF shadows — cheap). */
 export function Lights() {
   return (
     <>
-      <ambientLight intensity={0.6} />
+      <ambientLight intensity={0.4} />
+      <hemisphereLight args={['#dbeafe', '#0f172a', 0.5]} />
       <directionalLight
-        position={[4, 8, 4]}
-        intensity={1.5}
+        position={[4, 9, 4]}
+        intensity={2.2}
         castShadow
         shadow-mapSize={[1024, 1024]}
         shadow-camera-left={-6}
@@ -14,6 +15,7 @@ export function Lights() {
         shadow-camera-bottom={-6}
         shadow-camera-near={0.1}
         shadow-camera-far={30}
+        shadow-bias={-0.0005}
       />
     </>
   )

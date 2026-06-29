@@ -67,16 +67,21 @@ Scaffold → physical tray → **settle + read** (the core) → two dice + UI �
 
 ### M5 — Mobile gyro shake
 
-- [ ] Permission gate fired from a **tap** (iOS 13+ requirement).
-- [ ] Shake via `DeviceMotion` (threshold + debounce: one shake = one roll) → impulses.
-- [ ] Test on a **real device over HTTPS** (Tailscale `--host`, or `vite-plugin-mkcert`).
+- [x] Permission gate fired from a **tap** (iOS 13+ requirement).
+- [x] Shake via `DeviceMotion` (threshold + debounce: one shake = one roll) → roll. _(`src/input/useShakeToRoll.ts`
+      + a touch-only "Shake to roll" button in `UIOverlay`.)_
+- [ ] Test on a **real device over HTTPS** — _via the GitHub Pages deploy (`.github/workflows/deploy.yml`);
+      pending the user's on-device check._
 
 ### M6 — Polish
 
-- [ ] Toon / cel materials + an outline (`@react-three/postprocessing`).
-- [ ] Shadows (`castShadow` on dice, `receiveShadow` on the floor) for "where does it lie" readability.
-- [ ] Nicer number textures / decals; a subtler tray. _(Basic procedural number faces pulled forward
-      to M3 as a verification aid — `src/textures/number-materials.ts`; "nicer"/decals + subtler tray remain.)_
+- [x] Toon / cel materials + an outline. _(`MeshToonMaterial` faces + drei `<Outlines>` — no postprocessing
+      dep; default canvas MSAA antialiases the edges.)_
+- [x] Shadows (`castShadow` on dice, `receiveShadow` on the floor) — basic PCF at 1024 + a hemisphere
+      fill light. _(SoftShadows + a 2048 map were tried but dropped — they janked the GPU; `dpr` capped
+      to `[1, 1.5]`. See dev log "Perf fix".)_
+- [x] Nicer number textures / decals; a tray restyle. _(Number faces (M3) + a felt-green tray + toon/outline.
+      Engraved-pip / rounded-die GLB + decals remain optional polish.)_
 - **Polish only** — never tune effects over unfinished physics.
 
 ---

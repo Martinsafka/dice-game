@@ -60,6 +60,9 @@ export function DiceGame() {
       <Canvas
         orthographic
         shadows
+        // Cap the pixel ratio: a Retina display is dpr 2 → 4× the fragments. 1.5 is the perf/quality
+        // sweet spot for this fragment-light scene; drop to 1 if a weak GPU still struggles.
+        dpr={[1, 1.5]}
         camera={{ position: [0, 10, 0], zoom: 70, near: 0.1, far: 100 }}
         // Straight-down top-down view. Setting the rotation directly avoids the gimbal
         // degeneracy of lookAt() when the view direction is parallel to the camera's `up`.

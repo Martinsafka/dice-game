@@ -24,6 +24,20 @@ Example shape:
 
 <!-- Newest entries below. Add yours on top of the list. -->
 
+### 2026-06-29 — Perf fix: drop SoftShadows + cap DPR (M6 regression)
+
+**What:** Removed drei `<SoftShadows>`, dropped the shadow map 2048 → 1024, and capped the Canvas `dpr` to `[1, 1.5]`.
+**Why:** M6 made the scene GPU-heavy enough to jank the browser **and the whole machine** (the IDE froze) — reported by the user.
+**How:** `<SoftShadows>` (PCSS, 16 samples per fragment, every frame under the continuous render loop) was the dominant cost; basic PCF shadows read fine here. On a Retina display the canvas was rendering at dpr 2 (4× the fragments) — capping to 1.5 roughly halves fragment work. Toon + `<Outlines>` kept (cheap). CPU side (3 `useFrame` loops + 2-body physics) was never the issue — this was pure fragment/GPU cost.
+**Follow-ups:** Not verifiable headlessly — needs the user's machine. If a weak GPU still struggles, escalation levers in order: `dpr={[1, 1]}` → turn shadows off (Canvas `shadows` + the cast/receive flags) → fewer dice. `frameloop` stays "always" (Rapier steps in the loop, so on-demand isn't a drop-in).
+
+### 2026-06-29 — M5 gyro shake + M6 polish + GitHub Pages deploy
+
+**What:** M5 — `src/input/useShakeToRoll.ts` (DeviceMotion shake → roll with the iOS permission gate) + a touch-only "📱 Shake to roll" button in `UIOverlay`. M6 — toon dice (`MeshToonMaterial`) + drei `<Outlines>`, drei `<SoftShadows>` + a hemisphere fill + a sharper 2048 shadow map, and a felt-green tray floor. Deploy — `.github/workflows/deploy.yml` (build → Pages) + `base: '/dice-game/'` for the production build in `vite.config.ts`.
+**Why:** Finish the input + visual milestones; M5 can only be verified on a phone over HTTPS, so ship a Pages deploy to test it there (user's plan).
+**How:** Shake — `enable()` runs from the button tap (iOS 13+ grants motion only from a gesture; DeviceMotion needs HTTPS at all → Pages), then listens to `devicemotion` and fires the roll when |accel incl. gravity| > threshold (debounced); listener added imperatively, cleaned up on unmount; the button shows only on `(pointer: coarse)`. The handler closes over the (stable) `onShake` rather than a ref, to satisfy `react-hooks/refs`. Polish — kept the number CanvasTextures but on `MeshToonMaterial`; drei `<Outlines>` gives the cel edge (default MSAA antialiases it, so no postprocessing dep); `<SoftShadows>` + hemisphere fill + bias clean up the shadows; felt-green floor. Pages — `defineConfig(({ command }))` sets `base` to `/dice-game/` on build only (dev stays `/`); verified the built `index.html` references `/dice-game/assets/…`; the workflow installs with pnpm + Node 22, uploads `dist`, deploys via the official Pages actions.
+**Follow-ups:** **One-time GitHub setup (user):** create the `dice-game` repo under the same account, push `main`, then repo Settings → Pages → Source = **GitHub Actions**. If the repo name isn't `dice-game`, change `REPO` in `vite.config.ts`. Shake threshold/debounce + the M6 feel values (toon look, outline thickness, soft-shadow size, felt colour) want on-device / visual tuning. Optional later: postprocessing (vignette/bloom), engraved-pip GLB dice, kinematic drag handoff. (Invoke scripts as `pnpm run <script>` — the bare `pnpm <script>` shorthand hiccuped once with a corepack "use yarn" message.)
+
 ### 2026-06-29 — Drag-all: grab every die, dangle from a corner (M4 refinement)
 
 **What:** Reworked the drag from per-die grab into **drag-all**. Pressing the tray grabs ALL dice toward the cursor; each is pulled by a spring impulse applied at one corner (`applyImpulseAtPoint`) so it hangs and swings from that corner under gravity — full physics, they still collide. Dice shrink slightly while held (visual mesh scale only) to fake "lifted" under the ortho camera; extra linear/angular damping keeps the dangle gentle; release adds a spin + `startRoll`. `Die` lost `index`/`onGrab`, gained a `dragging` ref + a scale lerp; `DiceGame` swapped `dragIndex` → a `dragging` boolean ref and starts the drag on canvas pointer-down; CSS grab/grabbing cursor on `.game`.

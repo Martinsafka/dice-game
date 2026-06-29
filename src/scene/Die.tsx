@@ -1,5 +1,6 @@
 import { forwardRef, useMemo, useRef, type RefObject } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { Outlines } from '@react-three/drei'
 import { RigidBody, type RapierRigidBody } from '@react-three/rapier'
 import type { Mesh } from 'three'
 import { getNumberMaterials } from '../textures/number-materials'
@@ -13,9 +14,9 @@ type DieProps = {
 
 /**
  * A single dynamic die: a homogeneous-mass cuboid (colliders="cuboid", uniform density → fair;
- * ccd on to resist tunnelling). Faces show numbers 1–6 from the FACES table so the up-face
- * matches readDieValue. While dragging it shrinks a touch (visual mesh only — the collider stays
- * full size); the drag-throw physics live in DiceDragControls.
+ * ccd on to resist tunnelling). Toon face materials (numbers 1–6 from the FACES table, so the
+ * up-face matches readDieValue) + a drei outline for the cel look. While dragging it shrinks a
+ * touch (visual mesh only — the collider stays full size); drag-throw physics live in DiceDragControls.
  */
 export const Die = forwardRef<RapierRigidBody, DieProps>(function Die(
   { position = [0, 5, 0], dragging },
@@ -43,6 +44,7 @@ export const Die = forwardRef<RapierRigidBody, DieProps>(function Die(
     >
       <mesh ref={meshRef} castShadow material={materials}>
         <boxGeometry args={[1, 1, 1]} />
+        <Outlines thickness={0.04} color="#0f172a" />
       </mesh>
     </RigidBody>
   )
