@@ -1,11 +1,12 @@
 import { useGameStore } from '../state/game-store'
 import { useShakeToRoll } from '../input/useShakeToRoll'
+import { requestMotionPermission } from '../input/motion'
 
 type UIOverlayProps = {
   onRoll: () => void
 }
 
-// Only show the motion-permission button on touch devices (where DeviceMotion is meaningful).
+// Only show the motion-permission button on touch devices (where shake + tilt are meaningful).
 function isCoarsePointer(): boolean {
   return (
     typeof window !== 'undefined' && (window.matchMedia?.('(pointer: coarse)').matches ?? false)
@@ -16,17 +17,25 @@ function isCoarsePointer(): boolean {
  * DOM HUD over the canvas (not built from Three meshes). The reactive, low-frequency side: it
  * reads the Zustand store and re-renders once per roll. The overlay is click-through
  * (pointer-events: none) except the controls, so pointer events reach the dice (for dragging).
+ * The "Enable tilt & shake" button requests device permission (from the tap) and flips
+ * `motionStatus`, which the shake hook and the in-Physics tilt controller react to.
  */
 export function UIOverlay({ onRoll }: UIOverlayProps) {
   const phase = useGameStore((s) => s.phase)
   const results = useGameStore((s) => s.results)
   const total = useGameStore((s) => s.total)
   const rolls = useGameStore((s) => s.rolls)
-  const shake = useShakeToRoll(onRoll)
+  const motionStatus = useGameStore((s) => s.motionStatus)
+  const setMotionStatus = useGameStore((s) => s.setMotionStatus)
+  useShakeToRoll(onRoll)
 
   const rolling = phase === 'rolling'
   const settled = phase === 'settled'
   const coarse = isCoarsePointer()
+
+  function enableMotion() {
+    void requestMotionPermission().then(setMotionStatus)
+  }
 
   return (
     <div className="ui-overlay">
@@ -56,21 +65,18 @@ export function UIOverlay({ onRoll }: UIOverlayProps) {
           {rolls === 0 ? 'Roll' : 'Roll again'}
         </button>
 
-        {coarse && shake.status !== 'enabled' && (
-          <button
-            className="ui-shake"
-            onClick={() => {
-              void shake.enable()
-            }}
-          >
-            {shake.status === 'denied'
+        {coarse && motionStatus !== 'enabled' && (
+          <button className="ui-shake" onClick={enableMotion}>
+            {motionStatus === 'denied'
               ? '📱 Motion blocked'
-              : shake.status === 'unsupported'
+              : motionStatus === 'unsupported'
                 ? '📱 No motion sensor'
-                : '📱 Shake to roll'}
+                : '📱 Enable tilt & shake'}
           </button>
         )}
-        {coarse && shake.status === 'enabled' && <span className="ui-hint">📱 Shake to roll</span>}
+        {coarse && motionStatus === 'enabled' && (
+          <span className="ui-hint">📱 Tilt to slide · shake to roll</span>
+        )}
       </div>
     </div>
   )

@@ -1,66 +1,31 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect } from 'react'
+import { useGameStore } from '../state/game-store'
 
 const SHAKE_THRESHOLD = 22 // |acceleration incl. gravity| (rest ≈ 9.81); tune on a real device
 const SHAKE_DEBOUNCE_MS = 700 // one shake = one roll
 
-export type ShakeStatus = 'idle' | 'enabled' | 'denied' | 'unsupported'
-
-// iOS 13+ adds requestPermission() to DeviceMotionEvent; it isn't in the DOM lib types.
-type MotionPermissionApi = {
-  requestPermission?: () => Promise<'granted' | 'denied' | 'default'>
-}
-
 /**
- * Mobile "shake to roll". `enable()` MUST be called from a user gesture (a tap) — iOS 13+ only
- * grants motion access then, and HTTPS is required for DeviceMotion at all (hence GitHub Pages).
- * Once enabled, a shake above the threshold (debounced) fires `onShake`. The listener is added
- * imperatively (outside render) and cleaned up on unmount.
+ * Mobile "shake to roll". Attaches a devicemotion listener once motion is enabled in the store
+ * (permission is requested from the tap that sets `motionStatus` — see requestMotionPermission).
+ * A shake above the threshold (debounced) fires onRoll. HTTPS is required for DeviceMotion.
  */
-export function useShakeToRoll(onShake: () => void) {
-  const [status, setStatus] = useState<ShakeStatus>('idle')
-  const lastShake = useRef(0)
-  const handlerRef = useRef<((event: DeviceMotionEvent) => void) | null>(null)
+export function useShakeToRoll(onRoll: () => void) {
+  const motionStatus = useGameStore((s) => s.motionStatus)
 
   useEffect(() => {
-    return () => {
-      if (handlerRef.current) window.removeEventListener('devicemotion', handlerRef.current)
-    }
-  }, [])
-
-  async function enable() {
-    if (typeof window === 'undefined' || !('DeviceMotionEvent' in window)) {
-      setStatus('unsupported')
-      return
-    }
-    const motion = window.DeviceMotionEvent as unknown as MotionPermissionApi
-    if (typeof motion.requestPermission === 'function') {
-      try {
-        const result = await motion.requestPermission()
-        if (result !== 'granted') {
-          setStatus('denied')
-          return
-        }
-      } catch {
-        setStatus('denied')
-        return
-      }
-    }
-
-    if (handlerRef.current) window.removeEventListener('devicemotion', handlerRef.current)
-    const handler = (event: DeviceMotionEvent) => {
+    if (motionStatus !== 'enabled') return
+    let lastShake = 0
+    function handler(event: DeviceMotionEvent) {
       const a = event.accelerationIncludingGravity
       if (!a) return
       const magnitude = Math.hypot(a.x ?? 0, a.y ?? 0, a.z ?? 0)
       if (magnitude < SHAKE_THRESHOLD) return
       const now = performance.now()
-      if (now - lastShake.current < SHAKE_DEBOUNCE_MS) return
-      lastShake.current = now
-      onShake()
+      if (now - lastShake < SHAKE_DEBOUNCE_MS) return
+      lastShake = now
+      onRoll()
     }
-    handlerRef.current = handler
     window.addEventListener('devicemotion', handler)
-    setStatus('enabled')
-  }
-
-  return { status, enable }
+    return () => window.removeEventListener('devicemotion', handler)
+  }, [motionStatus, onRoll])
 }

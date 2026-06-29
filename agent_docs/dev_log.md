@@ -24,6 +24,13 @@ Example shape:
 
 <!-- Newest entries below. Add yours on top of the list. -->
 
+### 2026-06-29 — Mobile tilt → physics (gravity from device orientation)
+
+**What:** Tilting the phone now moves the dice physically — `src/input/TiltGravity.tsx` maps `DeviceOrientation` (beta/gamma) to the Rapier world's horizontal gravity. Unified the motion permission (shake + tilt) into `src/input/motion.ts` + a `motionStatus` store field; the button is now "Enable tilt & shake". Shake itself confirmed working on a real device by the user.
+**Why:** User request — small tilt = dice slide, big tilt = dice fly wall-to-wall (the brief's tilt bonus). Same "read from physics" spirit as the drag: a real force, not a scripted animation.
+**How:** `useRapier().world.gravity` (verified `World.gravity: Vector`, a public mutable field) is mutated imperatively inside the `deviceorientation` handler — never via React state, so no re-render / physics reset. The pose at enable time is captured as the neutral baseline (calibrated on the first event) and tilt is measured as a delta, so it works however the phone is held. `MAX_TILT_DEG=40` normalizes to ±1, ×`TILT_GRAVITY=22` horizontal (vs −9.81 down) → gentle slide at small angles, hard slam at large. Permission for motion+orientation is requested together via `Promise.all` (both `requestPermission` kicked off synchronously so iOS accepts the single gesture). `motionStatus` in the store is the bridge: the DOM button sets it; `TiltGravity` (inside `<Physics>`) and the refactored `useShakeToRoll` both attach their listeners when it flips to `enabled`.
+**Follow-ups:** On-device tuning — `SIGN_X`/`SIGN_Z` (flip if a tilt slides the wrong way), `TILT_GRAVITY`, `MAX_TILT_DEG`. Screen orientation (portrait↔landscape) remaps beta/gamma; only portrait is handled — a `screen.orientation` correction is a follow-up. Rolling while holding the phone near-vertical makes the up-face read ambiguous (dice rest against a wall) — fine for flat-ish play.
+
 ### 2026-06-29 — Perf fix: drop SoftShadows + cap DPR (M6 regression)
 
 **What:** Removed drei `<SoftShadows>`, dropped the shadow map 2048 → 1024, and capped the Canvas `dpr` to `[1, 1.5]`.

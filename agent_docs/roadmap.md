@@ -68,10 +68,11 @@ Scaffold → physical tray → **settle + read** (the core) → two dice + UI �
 ### M5 — Mobile gyro shake
 
 - [x] Permission gate fired from a **tap** (iOS 13+ requirement).
-- [x] Shake via `DeviceMotion` (threshold + debounce: one shake = one roll) → roll. _(`src/input/useShakeToRoll.ts`
-      + a touch-only "Shake to roll" button in `UIOverlay`.)_
-- [ ] Test on a **real device over HTTPS** — _via the GitHub Pages deploy (`.github/workflows/deploy.yml`);
-      pending the user's on-device check._
+- [x] Shake via `DeviceMotion` (threshold + debounce: one shake = one roll) → roll. _(`src/input/useShakeToRoll.ts` + a touch-only "Shake to roll" button in `UIOverlay`.)_
+- [x] Tested on a **real device over HTTPS** — shake confirmed working by the user (2026-06-29).
+- [x] **Tilt → physics (bonus):** `DeviceOrientation` (beta/gamma) → Rapier `world.gravity`, imperative
+      via `useRapier`, with a calibrated neutral pose — small tilt slides, big tilt flings the dice
+      wall-to-wall. `src/input/TiltGravity.tsx`. _(On-device sign/feel tuning still pending.)_
 
 ### M6 — Polish
 

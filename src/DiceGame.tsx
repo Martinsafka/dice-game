@@ -6,6 +6,7 @@ import { Tray } from './scene/Tray'
 import { Die } from './scene/Die'
 import { SettleWatcher } from './scene/SettleWatcher'
 import { DiceDragControls } from './input/DiceDragControls'
+import { TiltGravity } from './input/TiltGravity'
 import { UIOverlay } from './ui/UIOverlay'
 import { rollDice } from './physics/roll'
 import { useGameStore } from './state/game-store'
@@ -87,6 +88,7 @@ export function DiceGame() {
           ))}
           <SettleWatcher bodies={bodies} count={DIE_SPAWN.length} />
           <DiceDragControls bodies={bodies} dragging={dragging} />
+          <TiltGravity />
         </Physics>
       </Canvas>
     </div>
