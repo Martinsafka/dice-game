@@ -4,14 +4,14 @@ How the game is built at runtime. Authoritative for the renderer, the **state bo
 
 ## Responsibilities at a glance
 
-| Layer | Owns |
-| --- | --- |
-| **R3F + Three** (renderer) | the `<Canvas>`, scene graph, orthographic camera, lights, the `useFrame` loop, postprocessing |
-| **Rapier** (`<Physics>`) | rigid bodies, colliders, gravity, the ~60 fps simulation |
-| **Refs** (`RapierRigidBody`) | **per-frame** physics access — read velocity/rotation, apply impulses, drive a drag — mutated inside `useFrame`, **never** via `setState` |
-| **Zustand** | **discrete/meta** state — phase, settled `[d1, d2]`, total, roll count — the bridge to the UI |
-| **DOM overlay** (React) | the HUD — total, Roll button, roll counter — reads Zustand |
-| **Input** (pointer / `DeviceMotion`) | desktop drag-throw, mobile shake → impulses on the dice refs |
+| Layer                                | Owns                                                                                                                                      |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **R3F + Three** (renderer)           | the `<Canvas>`, scene graph, orthographic camera, lights, the `useFrame` loop, postprocessing                                             |
+| **Rapier** (`<Physics>`)             | rigid bodies, colliders, gravity, the ~60 fps simulation                                                                                  |
+| **Refs** (`RapierRigidBody`)         | **per-frame** physics access — read velocity/rotation, apply impulses, drive a drag — mutated inside `useFrame`, **never** via `setState` |
+| **Zustand**                          | **discrete/meta** state — phase, settled `[d1, d2]`, total, roll count — the bridge to the UI                                             |
+| **DOM overlay** (React)              | the HUD — total, Roll button, roll counter — reads Zustand                                                                                |
+| **Input** (pointer / `DeviceMotion`) | desktop drag-throw, mobile shake → impulses on the dice refs                                                                              |
 
 R3F is a **renderer, not a game framework** — we wire the scene, the physics, input, and state ourselves.
 
@@ -58,7 +58,7 @@ Zustand works **outside React**: the settle watcher and input handlers read/writ
 4. **Read** → `readDieValue(ref)` per die (quaternion → up face). If **any** die is cocked (`confidence < ~0.95`), hold/nudge and keep watching — **don't** write.
 5. **Commit** → `setResult([d1, d2])` sets `phase = "settled"`, `results`, `total`. **This is the only store write in the whole roll**, and it's what the UI re-renders on.
 
-The detail of steps 3–4 (thresholds, the quaternion read, cocked handling) lives in `physics.md` — this doc owns the *shape* of the flow, that doc owns the *mechanics*.
+The detail of steps 3–4 (thresholds, the quaternion read, cocked handling) lives in `physics.md` — this doc owns the _shape_ of the flow, that doc owns the _mechanics_.
 
 ## UI layer
 

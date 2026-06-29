@@ -10,7 +10,7 @@ The camera looks **straight down** (orthographic), so "which face is up" is visu
 
 ## The core idea (the whole point)
 
-**The result is read from the physics, not from a random number generator.** After the dice settle, each die's value is computed from its **world rotation** — rotate every face's local normal into world space, find the one pointing most "up". `Math.random()` is used **only** to seed the throw (the impulse and spin that give the tumble its entropy); it never decides the outcome. A fair *physical* die is the feature.
+**The result is read from the physics, not from a random number generator.** After the dice settle, each die's value is computed from its **world rotation** — rotate every face's local normal into world space, find the one pointing most "up". `Math.random()` is used **only** to seed the throw (the impulse and spin that give the tumble its entropy); it never decides the outcome. A fair _physical_ die is the feature.
 
 This is the first real "aha — it's reading from the simulation" moment, and it arrives at the end of **M2** (see `roadmap.md`).
 
@@ -28,6 +28,7 @@ Clean and readable over fancy. Pure top-down ortho view; a small tray that reads
 ## Scope (prototype reality)
 
 **In:**
+
 - Vite + R3F + Rapier + drei + Zustand client app.
 - An orthographic top-down tray: floor + 4 fixed walls.
 - **Two** procedural box dice with number faces **1–6**.
@@ -37,6 +38,7 @@ Clean and readable over fancy. Pure top-down ortho view; a small tray that reads
 - Toon / outline / shadow **polish** at the end.
 
 **Out / deferred / at risk:**
+
 - **A real game layer** (score, goal, win/lose, "best of N") — additive on top of the demo; deliberately deferred (tech-demo scope chosen). The loop must be complete and demonstrable without it.
 - **Pretty dice** — rounded edges, engraved pips, a Blender → GLB model with Draco/KTX2. The procedural box is enough to prove the systems; the nice die is a later **swap**, not a refactor.
 - **Pips** instead of numbers — numbers chosen for the prototype (simplest texture).
@@ -51,7 +53,7 @@ Mobile **tilt** (map `DeviceOrientation` beta/gamma to gravity so the dice roll 
 ## Why these decisions (short)
 
 - **Vite over Next.js:** a client-only WebGL toy; Three touches `window`/WebGL, so SSR is pure friction (`ReferenceError: window is not defined` at build). Vite is the first-class Three path and matches the team's toolchain.
-- **Read from physics over RNG:** it *is* the project. A fair physical die you can watch tumble is the whole reason to build this in 3D instead of `Math.random()` + a sprite.
+- **Read from physics over RNG:** it _is_ the project. A fair physical die you can watch tumble is the whole reason to build this in 3D instead of `Math.random()` + a sprite.
 - **Numbers over pips:** the simplest `CanvasTexture` (a digit on a square), no asset work; pips are a later texture swap.
 - **Tech demo before a game:** smallest path to the "it reads from the simulation" moment (end of M2). The game layer is additive and can't de-risk the core, so it waits.
 - **Procedural box over a GLB model:** placeholder dice prove the **systems**; swapping in a pretty die is a data change, not a rewrite.
