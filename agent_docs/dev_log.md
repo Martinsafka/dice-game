@@ -24,6 +24,13 @@ Example shape:
 
 <!-- Newest entries below. Add yours on top of the list. -->
 
+### 2026-06-29 — M2 settle detection + read-from-physics ⭐ (the core)
+
+**What:** `src/physics/{faces.ts, read-die.ts, settle.ts}` (React-free: the face table in BoxGeometry order, `readDieValue` → `{ value, confidence }`, tuning constants) and `src/scene/SettleWatcher.tsx` (per-frame rest detection in `useFrame`). `DiceGame` mounts the watcher on the die and logs `[settle] value = total (confidence …)` on each rest.
+**Why:** M2 — the core milestone: prove the die value is read from the simulation (world quaternion → which face is up), not RNG.
+**How:** `readDieValue` rotates each face normal by the body's world quaternion and argmaxes the dot with UP; preallocated `_q` / `_n` (runs per frame, no GC). Hand-derived the table against 6 known orientations (identity→1, 180°X→6, 90°X→4, −90°X→3, 90°Z→2, −90°Z→5). No store yet (M3), so `SettleWatcher` is **edge-triggered** (tracks moving→calm) and reports via an `onSettle` callback instead of a store-phase gate — dice moving again (a new throw) re-arms it. Cocked dice (`confidence < 0.95`) are never reported (warn-once, keep watching). Watcher uses only refs — no React state (the physics/state boundary).
+**Follow-ups:** **Eye-check pending** — value-matches-up-face needs a browser (console + map the top face's colour via `FACE_COLORS` to the logged value; faces show colours, not numbers, until polish). Cocked-die nudge not wired (warns + waits). Still one die. M3 swaps `onSettle` for the single `setResult` store write + a phase gate, adds the 2nd die, a Roll button → `rollDice`, and the DOM overlay.
+
 ### 2026-06-29 — M1 physical tray + dynamic die
 
 **What:** `src/scene/Tray.tsx` (fixed floor + 4 wall colliders) and `src/scene/Die.tsx` (a dynamic `colliders="cuboid"` box with 6 distinct face colours). `DiceGame` now wraps the scene in `<Physics>`, drops the die, and re-throws it on click. Removed the M0 `Ground` / `StaticBox` placeholders.

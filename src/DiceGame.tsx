@@ -4,6 +4,8 @@ import { Physics, type RapierRigidBody } from '@react-three/rapier'
 import { Lights } from './scene/Lights'
 import { Tray } from './scene/Tray'
 import { Die } from './scene/Die'
+import { SettleWatcher } from './scene/SettleWatcher'
+import type { DieReading } from './physics/read-die'
 
 // Toggle to render the (invisible) tray-wall colliders as wireframes while tuning.
 const SHOW_COLLIDERS = false
@@ -18,10 +20,20 @@ function throwDie(rb: RapierRigidBody) {
   rb.setAngvel({ x: rand(-15, 15), y: rand(-15, 15), z: rand(-15, 15) }, true)
 }
 
+// M2: log the settled value(s) — this is the "read from physics" proof. Open the browser
+// console, throw, and check the logged value matches the up-face. M3 replaces this with the
+// Zustand store write (setResult) + the DOM overlay.
+function logSettle(readings: DieReading[]) {
+  const values = readings.map((r) => r.value)
+  const total = values.reduce((sum, v) => sum + v, 0)
+  const conf = readings.map((r) => r.confidence.toFixed(3)).join(', ')
+  console.log(`[settle] ${values.join(' + ')} = ${total}  (confidence ${conf})`)
+}
+
 /**
- * Root composition. M1: a physical tray (floor + 4 walls) with one dynamic die that
- * falls, bounces, and settles. Click the scene to re-throw it. Settle detection +
- * reading the value are M2; the DOM UI overlay is M3. See agent_docs/roadmap.md.
+ * Root composition. M2: a dynamic die falls into the tray; SettleWatcher reads its value
+ * from the physics once it rests and logs it. Click the scene to re-throw. Two dice + the
+ * DOM UI overlay (the store write) are M3. See agent_docs/roadmap.md.
  */
 export function DiceGame() {
   const dieRef = useRef<RapierRigidBody>(null)
@@ -45,6 +57,7 @@ export function DiceGame() {
       <Physics gravity={[0, -9.81, 0]} debug={SHOW_COLLIDERS}>
         <Tray />
         <Die ref={dieRef} />
+        <SettleWatcher dice={[dieRef]} onSettle={logSettle} />
       </Physics>
     </Canvas>
   )
